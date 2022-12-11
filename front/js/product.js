@@ -39,15 +39,35 @@ const image = document.querySelector('.item__img');
       });
   }
   btn.addEventListener('click', () => {
-    const article = [];
-    console.log(color.value, quantity.value, id);
-    if (!article) {
-      article = [`${id},${color.value}, ${quantity.value}`];
-      localStorage.setItem(`${value.name}`, article);
+    function saveCart(cart) {
+      localStorage.setItem('cart', JSON.stringify(cart));
     }
-    console.log(article);
-    console.log(localStorage.getItem(`${value.name}`));
-    choice_color.value = '';
-    quantity.value = 0;
+    function getCart() {
+      let cart = localStorage.getItem('cart');
+      if (cart == null) {
+        return [];
+      } else {
+        return JSON.parse(cart);
+      }
+    }
+    (function addToCart(product) {
+      let cart = getCart();
+      product = {
+        id: id,
+        quantity: quantity.value,
+        color: color.value,
+      };
+      let findProduct = cart.find((p) => p.id == product.id);
+      let colorProduct = cart.find((p) => p.color == product.color);
+      if (findProduct != undefined && colorProduct != undefined) {
+        findProduct.quantity = findProduct.quantity + Number(quantity.value);
+      } else {
+        product.quantity = 1;
+        cart.push(product);
+      }
+      saveCart(cart);
+    })();
   });
 })();
+
+//  Voir pour les exports de fonctions.
