@@ -3,7 +3,7 @@ const API_URL = 'http://localhost:3000/api/products';
 
 // INSERT PRODUCTS ON WEBSITE
 
-(function recup_products() {
+function displayItems() {
   fetch(`${API_URL}`)
     .then(function (res) {
       if (res.ok) {
@@ -11,11 +11,8 @@ const API_URL = 'http://localhost:3000/api/products';
       }
     })
     .then(function (value) {
-      console.log(value);
-      console.log(value[0].altTxt);
       let i = 0;
       while (i < value.length) {
-        console.log(value[i]);
         const link = document.createElement('a');
         link.href = `./product.html?id=${value[i]._id}`;
         const article = document.createElement('article');
@@ -34,5 +31,9 @@ const API_URL = 'http://localhost:3000/api/products';
         i++;
       }
     })
-    .catch(function (err) {});
-})();
+    .catch(function (err) {
+      console.log(err);
+    });
+}
+
+displayItems();
