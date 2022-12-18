@@ -161,7 +161,7 @@ function saveCart(cart) {
 })();
 
 /* FORM WORKING */
-const URL_POST = `http://localhost:3000/api/order/`;
+const URL_POST = `http://localhost:3000/api/products/order`;
 const form = document.querySelector('.cart__order__form');
 const firstName = document.getElementById('firstNameErrorMsg');
 const lastName = document.getElementById('lastNameErrorMsg');
@@ -169,6 +169,8 @@ const address = document.getElementById('addressErrorMsg');
 const city = document.getElementById('cityErrorMsg');
 const email = document.getElementById('emailErrorMsg');
 const btnSubmit = document.getElementById('order');
+const dataList = document.getElementById('city-choice');
+const emptyCart = document.getElementById('emptyCartErrorMsg');
 
 function isValid(value) {
   let regExp = new RegExp('[a-zA-Z éèêëäàâôùûÀÂÉÈÔÙÛ]+$', 'g');
@@ -245,6 +247,38 @@ form.address.addEventListener('change', () => {
   }
 });
 
+form.address.addEventListener('change', () => {
+  fetch(`https://api-adresse.data.gouv.fr/search/?q=${form.address.value}`)
+    .then(function (res) {
+      if (res.ok) {
+        return res.json();
+      }
+    })
+    .then(function (data) {
+      let communes = [];
+      for (let i = 0; i < data.features.length; i++) {
+        console.log(data.features[i].properties.city);
+        let commune = data.features[i].properties.city;
+        communes.push(commune);
+      }
+
+      form.city.addEventListener('click', () => {
+        console.log(communes);
+        let c = 0;
+        while (c < communes.length) {
+          const dataChoice = document.createElement('option');
+          dataChoice.value = `${communes[c]}`;
+          dataList.appendChild(dataChoice);
+          c++;
+        }
+      });
+    })
+    .catch(function (err) {
+      console.log(err);
+    });
+});
+
+// Création de l'objet contact
 class Contact {
   constructor(firstName, lastName, city, address, email) {
     this.firstName = firstName;
@@ -253,11 +287,22 @@ class Contact {
     this.address = address;
     this.email = email;
   }
-  // showContact() {
-  //   console.log(
-  //     `Contact : ${this.firstName}, ${this.lastName}, ${this.address}, ${this.city}, ${this.email}`
-  //   );
-  // }
+  showContact() {
+    console.log(
+      `Contact : ${this.firstName}, ${this.lastName}, ${this.address}, ${this.city}, ${this.email}`
+    );
+  }
+}
+
+// Mise en array des products-id
+function arrayProductsId() {
+  let cart = getCart();
+  let productId = [];
+  for (let i = 0; i < cart.length; i++) {
+    productId.push(cart[i].id);
+  }
+  console.log(productId);
+  return productId;
 }
 
 btnSubmit.addEventListener('click', (e) => {
@@ -269,14 +314,47 @@ btnSubmit.addEventListener('click', (e) => {
     form.city.value,
     form.email.value
   );
+  let productId = arrayProductsId();
   if (
     isValid(form.firstName.value) &&
     isValid(form.lastName.value) &&
     isValid(form.city.value) &&
     isValidAddress(form.address.value) &&
-    isValidMail(form.email.value)
+    isValidMail(form.email.value) &&
+    productId.length != 0
   ) {
-    contact.showContact();
+    // Création de l'objet à envoyer
+    const order = {
+      contact: {
+        firstName: contact.firstName,
+        lastName: contact.lastName,
+        address: contact.address,
+        city: contact.city,
+        email: contact.email,
+      },
+
+      products: productId,
+    };
+    console.log('cart', productId);
+    fetch(`${URL_POST}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(order),
+    })
+      .then((res) => {
+        return res.json();
+      })
+      .then((response) => {
+        console.log(response.orderId);
+        // window.location.href = `confirmation.html?order=${response.orderId}`;
+        localStorage.clear();
+      })
+
+      .catch((err) => {
+        console.log(err.message);
+      });
   } else {
     let msg = 'Attention, vous devez renseigner ce champs!';
     if (form.firstName.value === '') {
@@ -293,6 +371,9 @@ btnSubmit.addEventListener('click', (e) => {
     }
     if (form.email.value === '') {
       email.innerText = msg;
+    }
+    if (productId.length == 0) {
+      emptyCart.innerText = 'Votre panier est vide !';
     }
   }
 });

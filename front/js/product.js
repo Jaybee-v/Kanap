@@ -10,6 +10,7 @@ const url_string = document.location.href;
 const url = new URL(url_string);
 const searchParams = new URLSearchParams(url.search);
 
+// Display product
 (function getProduct() {
   let id = null;
   if (searchParams.has('id')) {
@@ -64,7 +65,7 @@ function addToCart(product) {
   let findProductId = cart.find(
     (p) => p.id == product.id && p.color == product.color
   );
-
+  // Error message for inputs
   if (findProductId === undefined) {
     if (Number(quantity.value) == 0) {
       alert(
@@ -95,6 +96,3 @@ function addToCart(product) {
 }
 
 btn.addEventListener('click', addToCart);
-
-//  Voir pour les exports de fonctions.
-// export { saveCart, getCart };

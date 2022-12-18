@@ -6,6 +6,7 @@ const address = document.getElementById('addressErrorMsg');
 const city = document.getElementById('cityErrorMsg');
 const email = document.getElementById('emailErrorMsg');
 const btnSubmit = document.getElementById('order');
+const dataList = document.getElementById('city-choice');
 
 function isValid(value) {
   let regExp = new RegExp('[a-zA-Z éèêëäàâôùûÀÂÉÈÔÙÛ]+$', 'g');
@@ -82,20 +83,37 @@ form.address.addEventListener('change', () => {
   }
 });
 
-// form.address.addEventListener('keydown', () => {
-//   fetch(`https://api-adresse.data.gouv.fr/search/?q=${form.address.value}`)
-//     .then(function (res) {
-//       if (res.ok) {
-//         return res.json();
-//       }
-//     })
-//     .then(function (data) {
-//       console.log(data);
-//     })
-//     .catch(function (err) {
-//       console.log(err);
-//     });
-// });
+let communes = [];
+form.address.addEventListener('change', () => {
+  fetch(`https://api-adresse.data.gouv.fr/search/?q=${form.address.value}`)
+    .then(function (res) {
+      if (res.ok) {
+        return res.json();
+      }
+    })
+    .then(function (data) {
+      communes = [];
+      for (let i = 0; i < data.features.length; i++) {
+        console.log(data.features[i].properties.city);
+        let commune = data.features[i].properties.city;
+        communes.push(commune);
+      }
+
+      form.city.addEventListener('click', () => {
+        console.log(communes);
+        let c = 0;
+        while (c < communes.length) {
+          const dataChoice = document.createElement('option');
+          dataChoice.value = `${communes[c]}`;
+          dataList.appendChild(dataChoice);
+          c++;
+        }
+      });
+    })
+    .catch(function (err) {
+      console.log(err);
+    });
+});
 
 class Contact {
   constructor(firstName, lastName, city, address, email) {
